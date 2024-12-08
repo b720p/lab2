@@ -36,38 +36,49 @@ app.get("/api/users/:id", (req, res) => {
   
 
 app.post("/api/users",(req,res) =>{
-    const { name, age, id} = req.body;
+    // const { name, age, id} = req.body;
+    const { name, age} = req.body;
     let validName = false;
     let validAge = false;
-    let validId = false;
+    // let validId = false;
     // Проверка имени на соответствие формату
     for(let i = 0; i < name.length;++i){
-        if (name[i] != " " && (name[i].charCodeAt(0) < 65 || name[i].charCodeAt(0) > 122)){
+        if (name[i] != " " && (name[i].charCodeAt(0) < 65 || name[i].charCodeAt(0) > 122 || (name[i].charCodeAt(0) >= 91 && name[i].charCodeAt(0) <= 96))){
+            validName = false;
             break;
         }else{
             validName = true;
         }
     }
-    // Проверка ID на соответствие формату
-    if(typeof id === 'number'){
-        validId = true
-    }
+    
     // Проверка возраста на соответствие формату
     if(typeof age === 'number'){
         if(age > 0){
-            age = true;
+            validAge = true;
         }
     }
 
-    if (name == null || age == null || !(validAge) || !(validId) || !(validName)){
-        res.status(404).json({success:false,message: "Данные переданы неверно",validId:validId,validAge:validAge,validName:validName});
+    // if (!(validAge) || !(validId) || !(validName)){
+    //     res.status(404).json({success:false,message: "Данные переданы неверно",validId:validId,validAge:validAge,validName:validName});
+    //     return;
+    // }
+    if (!(validAge) || !(validName)){
+        res.status(404).json({success:false,message: "Данные переданы неверно",validAge:validAge,validName:validName});
+        return;
     }
     
-    const data = fs.readFileSync("lab2/users.json","utf8");
+    const data = fs.readFileSync("lab2/users-for-task1.json","utf8");
     const users = JSON.parse(data);
 
     let user = {name , age};
-
+    if(users.length <= 0){
+        user.id = 1;
+        users.push(user);
+        const newData = JSON.stringify(users);
+        fs.writeFileSync("lab2/users-for-task1.json",newData);
+        res.json({success:true,users:users})
+        return;
+    }
     const idd = Math.max.apply(
         Math,
         users.map((o) => {
@@ -77,16 +88,17 @@ app.post("/api/users",(req,res) =>{
     user.id = idd + 1;
     users.push(user);
     const newData = JSON.stringify(users);
-    fs.writeFileSync("lab2/users.json",newData);
-    res.json({success:true,user:user,users:users})
+    fs.writeFileSync("lab2/users-for-task1.json",newData);
+    res.json({success:true,users:users})
 });
 
 app.delete("/api/users/:id",(req,res) => {
     const id = req.params.id;
-    if(id == null || id == ""){
+    if(id == null || id <= 0){
         res.status(404).json({success:false,message:"Данные не заполнены"});
+        return;
     }
-    const data = fs.readFileSync("lab2/users.json","utf8");
+    const data = fs.readFileSync("lab2/users-for-task1.json","utf8");
     const users = JSON.parse(data);
     let index = -1;
     for(let i = 0; i < users.length; i++){
@@ -98,7 +110,7 @@ app.delete("/api/users/:id",(req,res) => {
     if(index > -1){
         const user = users.splice(index, 1)[0];
         const data = JSON.stringify(users);
-        fs.writeFileSync("lab2/users.json",data);
+        fs.writeFileSync("lab2/users-for-task1.json",data);
         res.json({ success: true, message: user });
     }else{
         res.status(404).json({ success: false, message: "Ошибка записи" });
@@ -110,8 +122,9 @@ app.put("/api/users",(req,res) => {
     const {name,age,id} = req.body;
     if(name == null || age == null || id == null){
         res.status(404).json({ success: false, message: "Данные не заполнены" });
+        return;
     }
-    const data = fs.readFileSync("lab2/users.json", "utf8");
+    const data = fs.readFileSync("lab2/users-for-task1.json", "utf8");
     const users = JSON.parse(data);
     let user;
     for (let i = 0; i < users.length; i++) {
@@ -124,7 +137,7 @@ app.put("/api/users",(req,res) => {
         user.age = age;
         user.name = name;
         const newData = JSON.stringify(users);
-        fs.writeFileSync("users.json", newData);
+        fs.writeFileSync("users-for-task1.json", newData);
         res.json({ success: true, message: user });
     }else{
         res.status(404).json({ success: false, message: "Ошибка записи" });
