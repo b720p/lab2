@@ -36,11 +36,9 @@ app.get("/api/users/:id", (req, res) => {
   
 
 app.post("/api/users",(req,res) =>{
-    // const { name, age, id} = req.body;
     const { name, age} = req.body;
     let validName = false;
     let validAge = false;
-    // let validId = false;
     // Проверка имени на соответствие формату
     for(let i = 0; i < name.length;++i){
         if (name[i] != " " && (name[i].charCodeAt(0) < 65 || name[i].charCodeAt(0) > 122 || (name[i].charCodeAt(0) >= 91 && name[i].charCodeAt(0) <= 96))){
@@ -58,10 +56,6 @@ app.post("/api/users",(req,res) =>{
         }
     }
 
-    // if (!(validAge) || !(validId) || !(validName)){
-    //     res.status(404).json({success:false,message: "Данные переданы неверно",validId:validId,validAge:validAge,validName:validName});
-    //     return;
-    // }
     if (!(validAge) || !(validName)){
         res.status(404).json({success:false,message: "Данные переданы неверно",validAge:validAge,validName:validName});
         return;
@@ -120,8 +114,36 @@ app.delete("/api/users/:id",(req,res) => {
 
 app.put("/api/users",(req,res) => {
     const {name,age,id} = req.body;
+    let validName = false;
+    let validAge = false;
+    let validId = false;
     if(name == null || age == null || id == null){
         res.status(404).json({ success: false, message: "Данные не заполнены" });
+        return;
+    }
+    
+    for(let i = 0; i < name.length;++i){
+        if (name[i] != " " && (name[i].charCodeAt(0) < 65 || name[i].charCodeAt(0) > 122 || (name[i].charCodeAt(0) >= 91 && name[i].charCodeAt(0) <= 96))){
+            validName = false;
+            break;
+        }else{
+            validName = true;
+        }
+    }
+    // Проверка возраста на соответствие формату
+    if(typeof age === 'number'){
+        if(age > 0){
+            validAge = true;
+        }
+    }
+    // Проверка ID на соответствие формату
+    if(typeof id === 'number'){
+        if(id > 0){
+            validId = true;
+        }
+    }
+    if (!(validAge) || !(validId) || !(validName)){
+        res.status(404).json({success:false,message: "Данные переданы неверно",validId:validId,validAge:validAge,validName:validName});
         return;
     }
     const data = fs.readFileSync("lab2/users-for-task1.json", "utf8");
@@ -137,7 +159,7 @@ app.put("/api/users",(req,res) => {
         user.age = age;
         user.name = name;
         const newData = JSON.stringify(users);
-        fs.writeFileSync("users-for-task1.json", newData);
+        fs.writeFileSync("lab2/users-for-task1.json", newData);
         res.json({ success: true, message: user });
     }else{
         res.status(404).json({ success: false, message: "Ошибка записи" });
